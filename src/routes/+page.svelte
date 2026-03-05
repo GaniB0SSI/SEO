@@ -3,25 +3,9 @@
 
 	let { data } = $props();
 
-	const imageFieldCandidates = [
-		'image',
-		'image_url',
-		'img',
-		'photo',
-		'photo_url',
-		'thumbnail',
-		'picture'
-	];
 	const nameFieldCandidates = ['name', 'title', 'product_name'];
 	const descriptionFieldCandidates = ['description', 'details', 'summary'];
 	const priceFieldCandidates = ['price', 'cost', 'amount'];
-	const staticImages = [
-		'/2h-media-3q4V539j_bw-unsplash.jpg',
-		'/c-d-x-PDX_a_82obo-unsplash.jpg',
-		'/jp-lockwood-PsvmNr5SJdI-unsplash.jpg',
-		'/petri-r-gehzL37x6zY-unsplash.jpg',
-		'/ryan-spaulding-fJdEMpA83NM-unsplash.jpg'
-	];
 
 	function getFirstByKeys(row, keys) {
 		for (const key of keys) {
@@ -30,21 +14,11 @@
 		return null;
 	}
 
-	function getImage(row, index = 0) {
-		const direct = getFirstByKeys(row, imageFieldCandidates);
-		if (typeof direct === 'string' && direct.trim()) {
-			const value = direct.trim();
-			if (value.startsWith('/')) return value;
-		}
-
-		for (const value of Object.values(row ?? {})) {
-			if (typeof value !== 'string') continue;
-			const v = value.trim();
-			if (!v) continue;
-			if (v.startsWith('/')) return v;
-		}
-
-		return staticImages[index % staticImages.length];
+	function getImage(row) {
+		const value = row?.image_url ?? row?.image ?? row?.photo_url ?? null;
+		if (typeof value !== 'string') return null;
+		const trimmed = value.trim();
+		return trimmed ? trimmed : null;
 	}
 
 	function getName(row) {
@@ -90,12 +64,20 @@
 			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 				{#each data.products as product, index (product.id ?? product.product_id ?? index)}
 					<article class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-						<img
-							src={getImage(product, index)}
-							alt={getName(product)}
-							class="h-56 w-full bg-gray-100 object-cover"
-							loading="lazy"
-						/>
+						{#if getImage(product)}
+							<img
+								src={getImage(product)}
+								alt={getName(product)}
+								class="h-56 w-full bg-gray-100 object-cover"
+								loading="lazy"
+							/>
+						{:else}
+							<div
+								class="flex h-56 w-full items-center justify-center bg-gray-100 text-sm text-gray-500"
+							>
+								No image URL in database
+							</div>
+						{/if}
 						<div class="space-y-2 p-4">
 							<h3 class="text-lg font-semibold">{getName(product)}</h3>
 							<p class="line-clamp-3 text-sm text-gray-600">{getDescription(product)}</p>
